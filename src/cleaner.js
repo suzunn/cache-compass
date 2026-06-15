@@ -20,6 +20,16 @@ function assertSafeTarget(root, candidate) {
   return rule;
 }
 
+/**
+ * Remove cache directories that still match the catalog under the scan root.
+ *
+ * Each target is resolved again before deletion so stale scan results cannot
+ * remove paths outside the root or paths that no longer look like known caches.
+ *
+ * @param {string} root Original scan root.
+ * @param {Array<object>} caches Cache entries returned by the scanner/filter.
+ * @returns {Promise<Array<object>>} Removal results with `removed` or `failed` status.
+ */
 export async function removeCaches(root, caches) {
   const resolvedRoot = path.resolve(root);
   const results = [];

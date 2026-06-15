@@ -42,6 +42,15 @@ export const cacheRules = [
   },
 ];
 
+/**
+ * Find the catalog rule for a path relative to a scan root.
+ *
+ * Windows paths are normalized to lowercase to match the platform filesystem's
+ * case-insensitive behavior.
+ *
+ * @param {string} relativePath Path relative to the scan root.
+ * @returns {{ id: string, label: string, matches: Array<Function> } | undefined}
+ */
 export function findCacheRule(relativePath) {
   const parts = relativePath
     .split(/[\\/]+/)
@@ -53,6 +62,13 @@ export function findCacheRule(relativePath) {
   );
 }
 
+/**
+ * Resolve a candidate path into the relative form used by cache catalog checks.
+ *
+ * @param {string} root Scan root.
+ * @param {string} candidate Candidate cache path.
+ * @returns {string} Candidate path relative to the resolved root.
+ */
 export function relativeCachePath(root, candidate) {
   return path.relative(path.resolve(root), path.resolve(candidate));
 }

@@ -16,6 +16,13 @@ async function readVersion() {
   return packageJson.version;
 }
 
+/**
+ * Execute the CLI command and return a process-style exit code.
+ *
+ * @param {string[]} args Raw command-line arguments without the executable name.
+ * @param {{ log: Function, error: Function }} [io] Output adapter for tests.
+ * @returns {Promise<number>} Exit code.
+ */
 export async function run(args, io = console) {
   let options;
   try {

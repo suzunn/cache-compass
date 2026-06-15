@@ -26,6 +26,13 @@ function readValue(args, index, flag) {
   return value;
 }
 
+/**
+ * Parse CLI arguments into normalized scan, filter, and output options.
+ *
+ * @param {string[]} args Raw command-line arguments without the executable name.
+ * @param {string} [cwd] Current working directory used to resolve the root.
+ * @returns {object} Normalized CLI options.
+ */
 export function parseOptions(args, cwd = process.cwd()) {
   const options = {
     root: cwd,
