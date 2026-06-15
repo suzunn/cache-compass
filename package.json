@@ -1,0 +1,30 @@
+{
+  "name": "cache-compass",
+  "version": "0.1.0",
+  "description": "Find and safely remove stale development caches across mixed-language repositories.",
+  "type": "module",
+  "bin": {
+    "cache-compass": "./src/cli.js"
+  },
+  "scripts": {
+    "lint": "node scripts/check-syntax.mjs",
+    "test": "node --test",
+    "ci": "npm run lint && npm test"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "files": [
+    "src",
+    "README.md",
+    "LICENSE"
+  ],
+  "keywords": [
+    "cache",
+    "cleanup",
+    "cli",
+    "developer-tools",
+    "disk-space"
+  ],
+  "license": "MIT"
+}
