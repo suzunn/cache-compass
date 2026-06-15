@@ -4,6 +4,12 @@ function pad(value, width) {
   return String(value).padEnd(width);
 }
 
+/**
+ * Build aggregate counts for a cache result set.
+ *
+ * @param {Array<object>} caches Cache entries included in a report.
+ * @returns {{ directories: number, files: number, bytes: number }}
+ */
 export function createSummary(caches) {
   return {
     directories: caches.length,
@@ -12,6 +18,12 @@ export function createSummary(caches) {
   };
 }
 
+/**
+ * Render a human-readable scan report for terminal output.
+ *
+ * @param {object} report Scan, warning, and optional removal details.
+ * @returns {string} Formatted text report.
+ */
 export function formatTextReport({
   root,
   caches,
@@ -82,6 +94,12 @@ export function formatTextReport({
   return lines.join("\n");
 }
 
+/**
+ * Render a stable JSON report for scripts and CI jobs.
+ *
+ * @param {object} report Scan, warning, and optional removal details.
+ * @returns {string} Pretty-printed JSON report.
+ */
 export function formatJsonReport({
   root,
   caches,

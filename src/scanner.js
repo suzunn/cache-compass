@@ -51,6 +51,16 @@ async function measureDirectory(directory, warnings) {
   return measurement;
 }
 
+/**
+ * Walk a repository tree and return directories that match the cache catalog.
+ *
+ * The scanner skips symbolic links, avoids `.git`, records read failures as
+ * warnings, and measures each matched cache before returning it.
+ *
+ * @param {string} root Directory to scan.
+ * @param {{ maxDepth?: number }} [options] Traversal options.
+ * @returns {Promise<{ root: string, caches: Array<object>, warnings: string[] }>}
+ */
 export async function scanCaches(root, { maxDepth = 12 } = {}) {
   const resolvedRoot = path.resolve(root);
   const rootStats = await lstat(resolvedRoot);

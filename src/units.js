@@ -29,14 +29,32 @@ function parseUnitValue(input, units, label) {
   return Number(match[1]) * multiplier;
 }
 
+/**
+ * Parse a size string such as `10mb` into bytes.
+ *
+ * @param {string} input Size value with a supported unit suffix.
+ * @returns {number} Rounded byte count.
+ */
 export function parseSize(input) {
   return Math.round(parseUnitValue(input, sizeUnits, "size"));
 }
 
+/**
+ * Parse a duration string such as `7d` into milliseconds.
+ *
+ * @param {string} input Duration value with a supported unit suffix.
+ * @returns {number} Rounded millisecond count.
+ */
 export function parseDuration(input) {
   return Math.round(parseUnitValue(input, durationUnits, "duration"));
 }
 
+/**
+ * Format a byte count for terminal reports.
+ *
+ * @param {number} bytes Byte count.
+ * @returns {string} Human-readable size.
+ */
 export function formatBytes(bytes) {
   if (bytes < 1024) {
     return `${bytes} B`;
@@ -56,6 +74,13 @@ export function formatBytes(bytes) {
   return `${value >= 10 ? value.toFixed(1) : value.toFixed(2)} ${unit}`;
 }
 
+/**
+ * Format elapsed time since a cache entry was last modified.
+ *
+ * @param {number} modifiedAtMs Last modified timestamp in milliseconds.
+ * @param {number} [now] Current timestamp for deterministic tests.
+ * @returns {string} Compact age string.
+ */
 export function formatAge(modifiedAtMs, now = Date.now()) {
   const elapsed = Math.max(0, now - modifiedAtMs);
   const hours = Math.floor(elapsed / (60 * 60_000));
