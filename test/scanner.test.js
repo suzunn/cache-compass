@@ -94,3 +94,41 @@ test("refuses paths that do not match the cache catalog", async (t) => {
   assert.equal(result.status, "failed");
   assert.match(result.error, /no longer matches a known cache rule/);
 });
+
+test("refuses removal targets outside the scan root", async (t) => {
+  const { root } = await fixture();
+  t.after(() => rm(root, { recursive: true, force: true }));
+
+  const [result] = await removeCaches(root, [
+    {
+      path: root,
+      relativePath: ".",
+      type: "node",
+      bytes: 0,
+      files: 0,
+      modifiedAtMs: Date.now(),
+    },
+  ]);
+
+  assert.equal(result.status, "failed");
+  assert.match(result.error, /Refusing unsafe cache path/);
+});
+
+test("refuses stale scan results when the cache type changes", async (t) => {
+  const { root, paths } = await fixture();
+  t.after(() => rm(root, { recursive: true, force: true }));
+
+  const [result] = await removeCaches(root, [
+    {
+      path: paths.node,
+      relativePath: path.relative(root, paths.node),
+      type: "python",
+      bytes: 2048,
+      files: 1,
+      modifiedAtMs: Date.now(),
+    },
+  ]);
+
+  assert.equal(result.status, "failed");
+  assert.match(result.error, /Cache type changed before removal/);
+});
