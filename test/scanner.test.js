@@ -1,6 +1,13 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { mkdir, mkdtemp, rm, utimes, writeFile } from "node:fs/promises";
+import {
+  mkdir,
+  mkdtemp,
+  rm,
+  symlink,
+  utimes,
+  writeFile,
+} from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { removeCaches } from "../src/cleaner.js";
@@ -131,4 +138,74 @@ test("refuses stale scan results when the cache type changes", async (t) => {
 
   assert.equal(result.status, "failed");
   assert.match(result.error, /Cache type changed before removal/);
+});
+
+test("honors traversal depth limits", async (t) => {
+  const { root } = await fixture();
+  t.after(() => rm(root, { recursive: true, force: true }));
+
+  const shallow = await scanCaches(root, { maxDepth: 1 });
+  const medium = await scanCaches(root, { maxDepth: 2 });
+  const deep = await scanCaches(root, { maxDepth: 3 });
+
+  assert.deepEqual(shallow.caches, []);
+  assert.deepEqual(
+    medium.caches.map((cache) => cache.type),
+    ["python"],
+  );
+  assert.deepEqual(
+    deep.caches.map((cache) => cache.type).sort(),
+    ["node", "python"],
+  );
+});
+
+test("measures nested files and sorts caches by descending size", async (t) => {
+  const { root, paths } = await fixture();
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const nested = path.join(paths.python, "nested");
+  await mkdir(nested);
+  await writeFile(path.join(nested, "data.bin"), Buffer.alloc(4096));
+
+  const result = await scanCaches(root);
+
+  assert.equal(result.caches[0].type, "python");
+  assert.equal(result.caches[0].bytes, 4096 + 32);
+  assert.equal(result.caches[0].files, 2);
+});
+
+test("ignores directory links and refuses to remove linked caches", async (t) => {
+  const { root } = await fixture();
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const external = await mkdtemp(path.join(os.tmpdir(), "cache-compass-link-"));
+  t.after(() => rm(external, { recursive: true, force: true }));
+  const linkedCache = path.join(root, ".turbo");
+  await symlink(external, linkedCache, "junction");
+
+  const scan = await scanCaches(root);
+  const [removal] = await removeCaches(root, [
+    {
+      path: linkedCache,
+      relativePath: ".turbo",
+      type: "node",
+      bytes: 0,
+      files: 0,
+      modifiedAtMs: Date.now(),
+    },
+  ]);
+
+  assert.equal(
+    scan.caches.some((cache) => cache.path === linkedCache),
+    false,
+  );
+  assert.equal(removal.status, "failed");
+  assert.match(removal.error, /no longer a real directory/);
+});
+
+test("rejects a scan root that is not a directory", async (t) => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "cache-compass-root-"));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const file = path.join(root, "input.txt");
+  await writeFile(file, "not a directory");
+
+  await assert.rejects(() => scanCaches(file), /Root is not a directory/);
 });
